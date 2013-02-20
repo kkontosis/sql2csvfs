@@ -1,0 +1,36 @@
+`sql2textfs' is a FUSE filesystem for mounting database tables as text files.
+Written by Kimon Kontosis in year 2012 for his major paper in
+Department of Informatics and Telecommunications,
+National & Kapodistrian University of Athens.
+Copyright (C) 2012, Kimon Kontosis
+
+
+The program `sql2textfs` is a custom file system based on FUSE that
+lets the user mount a database and view all its tables as files of a 
+directory of the filesystem in a POSIX system.
+The databased tables are viewed as files but in a specific format:
+All table entries are converted into lines in a file of text.
+Columns are separated by tab, so all the data of the table is in
+a tab-delimited text file. The file format is a form of CSV format.
+The table header is in the first line of the file. It is a tab-delimited
+line containing the name and some type-properties of each column.
+The file system sql2textfs relies on `libsql2text` and `libretranse`
+which are parts of the same project. `libretranse` is a runtime
+library that parses and runs programs written in `retranse' - a language 
+based on regular expressions. The configuration file of sql2textfs, 
+which is written in retranse, is essential since much of the
+convertion functionality lies there and each database type requires
+a special configuration file.
+The project sql2textfs, when built, produces the binary file 
+`sql2textmount' which is the program that mounts databases into a 
+directory given a connection string.
+
+
+sql2textfs is licensed under the GNU General Public License version 3 or
+later. See LICENSE
+
+
+For sql2textfs documentation see doc/MANUAL
+
+For INSTALLATION instructions see doc/INSTALL
+
