@@ -1,6 +1,6 @@
 libsql2text INSTALLATION
 
-An easy way to build sql2textfs is to use the `sql2textbuilder.sh` script
+An easy way to build sql2textfs is to use the `buildsql2text.sh` script
 which handles downloading and building the special dependencies automatically.
 The following instructions give details for a manual installation.
 
