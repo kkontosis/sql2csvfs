@@ -1,0 +1,85 @@
+libsql2text INSTALLATION
+
+An easy way to build sql2textfs is to use the `sql2textbuilder.sh` script
+which handles downloading and building the special dependencies automatically.
+The following instructions give details for a manual installation.
+
+1. Requirements
+================================================================================
+
+sql2textfs currently compiles only on POSIX systems.
+It has been tested in a Ubuntu Linux 9.04.
+
+The programs needed to compile sql2textfs are:
+--------------------------------------------------------------------------------
+	g++
+	make
+	libpcre development package
+	libpcre++ development package
+	libfuse development package
+	fusermount from fuse-utils package
+	pkg-config
+	unixodbc development package
+	libmysqlclient development package
+	libsqlite3 development package
+	libpq development package 
+--------------------------------------------------------------------------------
+	libcppdb
+--------------------------------------------------------------------------------
+	libretranse
+	libsql2text
+--------------------------------------------------------------------------------
+
+Note that in different systems, the package names may vary.
+
+The library libcppdb is part of the cppcms project and has separate
+installation instructions. See also: http://cppcms.com
+
+The libraries libretranse and libsql2text are part of the same project as 
+sql2textfs and has separate installation instructions.
+
+In order to build sql2textfs, the projects
+	cppdb
+	retranse
+	libsql2text
+
+need to be placed in the parent directory of the one that contains sql2textfs
+with the exact names `cppdb`, `retranse` and `sql2text`.
+Listing the parent directory should look like this:
+
+	cppdb
+	retranse
+	sql2text
+	sql2textfs
+
+Before building sql2textfs make sure that cppdb, retranse and libsql2text
+have been built.
+
+
+2. Installation
+================================================================================
+
+Before building it is necessary to have an sql2textfs directory side by side 
+with its pre-compiled dependencies as described above.
+Go to the sql2textfs directory and type:
+
+	make
+
+The sql2textmount program will be compiled.
+After that, if you wish to install the program into /usr/local type:
+
+	sudo make install
+
+and the sql2textmount program together with the sql2textfs configuration
+files in /etc/sql2text will be installed.
+
+
+3. Unstalling sql2textfs
+================================================================================
+
+To remove sql2textfs from /usr/local go to the source code directory
+and type:
+
+	sudo make uninstall
+
+

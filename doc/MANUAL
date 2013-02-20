@@ -1,0 +1,441 @@
+sql2textfs MANUAL
+
+1. About sql2textfs
+================================================================================
+
+`sql2textfs' is a FUSE filesystem for mounting database tables as text files.
+Written by Kimon Kontosis in year 2012 for his major paper in
+Department of Informatics and Telecommunications,
+National & Kapodistrian University of Athens.
+Copyright (C) 2012, Kimon Kontosis
+
+
+The program `sql2textfs` is a custom file system based on FUSE that
+lets the user mount a database and view all its tables as files of a 
+directory of the filesystem in a POSIX system.
+The databased tables are viewed as files but in a specific format:
+All table entries are converted into lines in a file of text.
+Columns are separated by tab, so all the data of the table is in
+a tab-delimited text file. The file format is a form of CSV format.
+The table header is in the first line of the file. It is a tab-delimited
+line containing the name and some type-properties of each column.
+The file system sql2textfs relies on `libsql2text` and `libretranse`
+which are parts of the same project. `libretranse` is a runtime
+library that parses and runs programs written in `retranse' - a language 
+based on regular expressions. The configuration file of sql2textfs, 
+which is written in retranse, is essential since much of the
+convertion functionality lies there and each database type requires
+a special configuration file.
+The project sql2textfs, when built, produces the binary file 
+`sql2textmount' which is the program that mounts databases into a 
+directory given a connection string.
+
+
+sql2textfs is licensed under the GNU General Public License version 3 or
+later. See LICENSE
+
+
+2. Installation
+================================================================================
+
+For INSTALLATION instructions, please refer to the file: INSTALL
+
+
+3. sql2textfs text file format
+================================================================================
+
+For the sql2text TEXT FILE FORMAT, please refer to the file: FORMAT
+
+
+4. The command line program sql2textmount
+================================================================================
+
+The binary sql2textmount is a command line program that mounts a database
+to a specified directory.
+When running `sql2textmount --help`, the following options are displayed:
+
+--------------------------------------------------------------------------------
+sql2textfs version 1.0
+Copyright (c) 2012 Kimon Kontosis, licenced under the GNU GPL v3.0 or above
+usage: ./sql2textmount [options]... [mount-options]... <conn-string> <path>
+where:
+	<conn-string> is the database connection string, and
+	<path> is the mounting point
+
+the database connection string consists of pairs of the type:
+	key=value
+separated by semicolon (;) following the database type name and a colon (:)
+for example:
+	mysql:user=username;password=hackme
+see also the documentation of `cppcms` for connection string information
+
+valid options are:
+	--help			shows help
+	--root			allow running as root
+	--log <file>		use log file <file>
+	--verbose		enable verbose logging
+	--disable-reload	no reloading files on the fly
+ 
+valid mount-options are:
+ 	-o opt	where opt is a valid mount option
+see also: `man mount' for a full list of the mount options
+
+--------------------------------------------------------------------------------
+
+The only required arguments for `sql2textmount` are: <conn-string> and <path>.
+The <conn-string> is a connection string to the database.
+
+For information about the database connection string, please refer to the 
+file: CONNECTION.
+
+The <path> must be an existing empty directory and it is the target where the 
+database is going to be mounted to.
+
+The [mount-options] are optional mount arguments that are passed on to fuse.
+The format of those options is:
+	
+	-o option
+
+An example mount option is to specify that the mounting is read-only:
+
+	-o ro
+
+There are also some cache options which could be useful for `sql2textfs`.
+For a complete reference of the mount options, please use the command:
+
+	man mount
+	
+or:
+
+	man fuse
+
+The sql2text [options] are optional too. 
+We will discuss those options in a later section.
+
+We are now going to discuss how a database is mounted and what is the structure
+of the mounted files.
+
+
+4.1. Mounting a database
+================================================================================
+
+Let us suppose that there is a local mysql server already set-up with the user
+`root' having password `root'. Suppose we want to mount it to a local directory
+named `foo`. First we need create the directory if it does not exist:
+
+	$ mkdir -p foo
+	
+Then we mount the database with the following connection string to the
+directory `foo` as shown:
+
+	$ ./sql2textmount "mysql:user=root;password=root" foo
+
+It is done. The database is mounted. 
+From now on, we can perform any file operation on foo and its subdirectories
+and any changes made will affect the database. 
+
+We now discuss the structure of the sql2textfs file subsystem.
+
+
+4.1.1. Directory structure
+================================================================================
+
+The structure of a directory mounted with sql2textfs is very specific. Files 
+and directories can only be created at specific places and they represent
+very specific items in the database side.
+
+We start by discussing the root directory. One database server may contain
+multiple databases. For example, using the following command we list all the 
+databases that can be found in the local mysql server.
+
+	$ ls -l foo
+	total 20
+	drwxr-x--- 2 kiwi kiwi 4096 Feb 20 12:59 information_schema
+	drwxr-x--- 2 kiwi kiwi 4096 Feb 20 12:59 my_test_database
+	drwxr-x--- 2 kiwi kiwi 4096 Feb 20 12:59 mysql
+	drwxr-x--- 2 kiwi kiwi 4096 Feb 20 12:59 phpmyadmin
+	drwxr-x--- 2 kiwi kiwi 4096 Feb 20 12:59 test
+
+Each database is represented by a single subdirectory that has the name of 
+the database.
+
+Therefore, the root directory represents the connection to a server, and the
+underlying subdirectories represent the server's accessible databases, even
+if it might be only one of them. Nothing else can be in the root directory. 
+Normal files cannot exist there.
+
+As expected, making a subdirectory under the root directory is equivalent to
+creating a new database.
+
+
+4.1.2. Database directory
+================================================================================
+
+As stated above, each database is represented by a single subdirectory of the
+root directory. The database directory also has a specific structure.
+Opposite to the root directory, no subdirectories are allowed in the database
+directory. Instead, a database directory contains only files.
+
+Each file in a database directory represents a table that belongs to that
+database. The name of the file is the name of the table. For example, we list
+all the tables of out `information_schema` database with the following command:
+
+	$ ls -l foo/information_schema/
+	total 236
+	-rw-r--r-- 1 kiwi kiwi  1676 Feb 20 13:21 CHARACTER_SETS
+	-rw-r--r-- 1 kiwi kiwi  4200 Feb 20 13:21 COLLATIONS
+	-rw-r--r-- 1 kiwi kiwi  2759 Feb 20 13:21 COLLATION_CHARACTER_SET_
+	APPLICABILITY
+	-rw-r--r-- 1 kiwi kiwi 77396 Feb 20 13:21 COLUMNS
+	-rw-r--r-- 1 kiwi kiwi   127 Feb 20 13:21 COLUMN_PRIVILEGES
+	-rw-r--r-- 1 kiwi kiwi   599 Feb 20 13:21 ENGINES
+	-rw-r--r-- 1 kiwi kiwi   421 Feb 20 13:21 EVENTS
+	-rw-r--r-- 1 kiwi kiwi   628 Feb 20 13:21 FILES
+	-rw-r--r-- 1 kiwi kiwi  6054 Feb 20 13:21 GLOBAL_STATUS
+	-rw-r--r-- 1 kiwi kiwi  6295 Feb 20 13:21 GLOBAL_VARIABLES
+	-rw-r--r-- 1 kiwi kiwi  4647 Feb 20 13:21 KEY_COLUMN_USAGE
+	-rw-r--r-- 1 kiwi kiwi  8351 Feb 20 13:21 PARTITIONS
+	-rw-r--r-- 1 kiwi kiwi  1354 Feb 20 13:21 PLUGINS
+	-rw-r--r-- 1 kiwi kiwi   169 Feb 20 13:21 PROCESSLIST
+	-rw-r--r-- 1 kiwi kiwi   291 Feb 20 13:21 PROFILING
+	-rw-r--r-- 1 kiwi kiwi   262 Feb 20 13:21 REFERENTIAL_CONSTRAINTS
+	-rw-r--r-- 1 kiwi kiwi   461 Feb 20 13:21 ROUTINES
+	-rw-r--r-- 1 kiwi kiwi   315 Feb 20 13:21 SCHEMATA
+	-rw-r--r-- 1 kiwi kiwi   912 Feb 20 13:21 SCHEMA_PRIVILEGES
+	-rw-r--r-- 1 kiwi kiwi  6056 Feb 20 13:21 SESSION_STATUS
+	-rw-r--r-- 1 kiwi kiwi  6296 Feb 20 13:21 SESSION_VARIABLES
+	-rw-r--r-- 1 kiwi kiwi  5736 Feb 20 13:21 STATISTICS
+	-rw-r--r-- 1 kiwi kiwi 10212 Feb 20 13:21 TABLES
+	-rw-r--r-- 1 kiwi kiwi  1989 Feb 20 13:21 TABLE_CONSTRAINTS
+	-rw-r--r-- 1 kiwi kiwi   109 Feb 20 13:21 TABLE_PRIVILEGES
+	-rw-r--r-- 1 kiwi kiwi   510 Feb 20 13:21 TRIGGERS
+	-rw-r--r-- 1 kiwi kiwi  4262 Feb 20 13:21 USER_PRIVILEGES
+	-rw-r--r-- 1 kiwi kiwi   199 Feb 20 13:21 VIEWS
+
+The structure of a database directory is as simple as that. It holds nothing 
+else but tables and the creation of a new file automatically means the 
+creation of a table, as long as the file contains a well formed header line
+that can describe a table.
+
+When a file is not a well-formed table, it is simply stored in a temporary 
+space waiting for it to either be changed into a valid table or be deleted.
+Meanwhile the temporary file is treated like a normal random access file.
+
+
+4.1.3. Tables files
+================================================================================
+
+Each file in a database directory represents a table. The format of these
+files is a special form of CSV format with `tab` as the delimiter. The file
+format is explained in detail on a previous section.
+
+As an example we will show the first 10 records of the table
+
+`information_schema.COLLATION_CHARACTER_SET_APPLICABILITY`
+
+using the following command:
+
+	$ head foo/information_schema/COLLATION_CHARACTER_SET_APPLICABILITY 
+	COLLATION_NAME(v32)*	CHARACTER_SET_NAME(v32)*
+	big5_chinese_ci	big5
+	big5_bin	big5
+	dec8_swedish_ci	dec8
+	dec8_bin	dec8
+	cp850_general_ci	cp850
+	cp850_bin	cp850
+	hp8_english_ci	hp8
+	hp8_bin	hp8
+	koi8r_general_ci	koi8r
+
+	
+4.1.4. Editing tables
+================================================================================
+
+The fun and useful part of sql2textfs comes with editing tables. By simply 
+making any change to the text of the file and saving it one changes values in
+the database. When values are being changed on the text, the filesystem runs
+the program `diff` using a temporary file to find the actual modifications.
+The modifications are then automatically translated to INSERT, DELETE or 
+UPDATE SQL queries and are run on the database. 
+
+All the programming details aside, one may simply edit the text file using any
+text editor program, for example vi, nano, gedit, etc. and make changes on
+the database. Backup files created by programs such as a text editor are 
+handled effectively as separate tables, or if not possible, as local temporary
+files.
+
+Renaming a table file is also possible and results to renaming a table.
+Besides text editors, programs such as sed, grep, awk, etc. that are very
+handy for scripting can be easily used on the text files as if they were
+normal text files. Another more complicated example would involve the use of
+`git` on a database.
+
+Note however that the rules of the sql2textfs text file format should always 
+be kept when making changes on a table. Writing changes that do not follow
+those rules may produce an undefined result.
+
+
+4.1.5. Limitations
+================================================================================
+
+One limitation at the current state of sql2textfs is that `ALTER TABLE` 
+commands are not yet supported and changing the file header row is generally
+not handled properly. This may be changed in the latest version of sql2textfs.
+
+
+4.2. Unmounting a database
+================================================================================
+
+In order to unmount an already mounted database, the following command needs
+to be run:
+
+	fusermount -u <path>
+
+where <path> is the mounting point. For example, if a database has been 
+mounted to the directory `foo` it can be unmounted using:
+	
+	fusermount -u foo
+
+No superuser priviledges are needed to unmount such a database. More 
+specifically the umounting can be done by the same user that has mounted the
+database. For more information, please run the command:
+
+	man fusermount
+	
+
+4.3. sql2textmount errors
+================================================================================
+
+There are a few possible errors in `sql2textfs`.
+
+
+4.3.1. Fuse module is not loaded
+================================================================================
+
+It is possible that when trying to mount a database the following error shows
+up:
+
+	fuse: device not found, try 'modprobe fuse' first
+	./sql2textmount: fuse_main returned 1
+
+This means that the `fuse` module is not loaded by default. Loading the fuse
+module can be done by the following command. Note that this command requires
+superuser access and so it is shown with `sudo`:
+	
+	sudo modprobe fuse
+
+After the fuse module has been loaded the `sql2textmount` command needs
+to be run again to do the mounting.
+
+
+4.3.2. Cppdb related errors
+================================================================================
+
+It is possible to see an error related to cppdb. This probably means that the
+connection to the database cannot be made. Possible reasons are an invalid 
+connection string, wrong username or password or that the requested database is
+not found. For example, the following error:
+
+	ERROR: cppdb::mysql::Can't connect to local MySQL server through socket 
+	'/var/run/mysqld/mysqld.sock' (2)
+
+Could mean that there is no mysql server available.
+
+
+4.3.3. Error parsing configuration
+================================================================================
+
+An error during parsing of the configuration file certainly means that there
+is an error in the configuration file. In this case, the file and line number
+where the error is found are displayed. For example:
+
+	config.ret:21: error: Expected end of line.
+	error in configuration file ./etc/sql2text/config.ret
+
+This message means that there should be an end-of-line in the shown file.
+The configuration file is written in `retranse`. For information about the 
+retranse programming language please refer to the manual of retranse.
+
+
+4.3.4. Configuration errors
+================================================================================
+
+A configuration error usually means that either the configuration file has is 
+wrong or that it has a problem or lacks support for the specified database.
+
+In the following example, the following message could mean a missing function 
+from the configuration file, perhaps due to a typo:
+
+	CONFIGURATION ERROR: Cannot match function dbname
+	
+The following error means that the requested engine type is not supported:
+
+	CONFIGURATION ERROR: No configuration file found for db engine type: 
+	mysql
+
+	
+4.4. The sql2textmount advanced options
+================================================================================
+	
+Here we explain the advanced command line parameters of sql2textmount.
+
+The argument:
+
+	--root			allow running as root
+
+will allow executing sql2textmount as root. Normally mounting as root is
+disabled. The reason is that it poses a great security risk.
+However it is allowed to enabled running the program as root. This flag should
+only be used when the user knows and understands the potential security 
+risks of doing so and that would require some studying of the source code
+as well.
+	
+	--log <file>		use log file <file>
+	
+The default log file of sql2textmount is `/dev/null`, meaning that no logging
+occurs. To enable logging information to a logfile simply use `--log` and the
+filename. However note that the sql2textmount log file is mostly useful for
+debugging purposes and the logs might be less than understandable to anyone
+not familiar with the source code.
+	
+	--verbose		enable verbose logging
+	
+This is a flag that enables verbose logging. When enabled in combination with
+a log file, many more details are logged to the file. Again, the flag is 
+mainly useful for debugging purposes.
+	
+	--disable-reload	no reloading files on the fly
+
+This flag essentially tells sql2textmount that no changes are going to be made
+to the database. When this flag is set, files are loaded only once from the
+database and are not reloaded. Normally a file is reloaded each time it is 
+being opened. This switch will probably make the file system a bit faster
+but the files will not always be up to date.
+
+
+5. The retranse configuration file
+================================================================================
+
+In order for sql2textfs to be able to run, a proper retranse configuration
+file should be given. The retranse configuration virtually implements most 
+of the sql2textfs operations, based on the libsql2text library.
+
+The file `etc/sql2text/config.ret' is a self-documented configuration file that
+has serveral functions which perform the necessary operations of sql2textfs.
+Some of the functions included in this file need to be overriden. This
+file includes all the files in `etc/sql2text/engine/*.ret` which defines
+overrides for specific database engine types.
+The file `etc/sql2text/engine/mysql.ret` defines all the required overrides
+for the mysql engine. The detection and overriding based on the engine type
+is done by using the engine type name which is passed as the first parameter 
+to all functions. This engine type name is taken from the database connection 
+string.
+
+By observing the given configuration files and the specifications given in the 
+comments, one should perhaps be capable of writing an explicit specialization
+for a different engine type in a new retranse configuration file that
+could be placed in the `engine' subdirectory.
+
+The configuration file is written in the retranse programming language.
+Documentation for the retranse programming language can be found at the
+retranse open source project.
