@@ -1,5 +1,5 @@
 /*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
- *  Copyright (C) 2012, Kimon Kontosis
+ *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published

@@ -1,5 +1,5 @@
 /*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
- *  Copyright (C) 2012, Kimon Kontosis
+ *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published
@@ -37,7 +37,7 @@
 int fs_usage(const char* programname)
 {
 	printf("sql2textfs version 1.0\n");
-	printf("Copyright (c) 2012 Kimon Kontosis, licenced under the GNU GPL v3.0 or above\n");
+	printf("Copyright (c) 2013 Kimon Kontosis, licenced under the GNU GPL v3.0 or above\n");
 	printf("usage: %s [options]... [mount-options]... <conn-string> <path>\n", 
 		programname);
 	printf("where:\n");
