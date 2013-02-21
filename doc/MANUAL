@@ -4,10 +4,10 @@ sql2textfs MANUAL
 ================================================================================
 
 `sql2textfs' is a FUSE filesystem for mounting database tables as text files.
-Written by Kimon Kontosis in year 2012 for his major paper in
+Written by Kimon Kontosis in year 2013 for his major paper in
 Department of Informatics and Telecommunications,
 National & Kapodistrian University of Athens.
-Copyright (C) 2012, Kimon Kontosis
+Copyright (C) 2013, Kimon Kontosis
 
 
 The program `sql2textfs` is a custom file system based on FUSE that
@@ -56,7 +56,7 @@ When running `sql2textmount --help`, the following options are displayed:
 
 --------------------------------------------------------------------------------
 sql2textfs version 1.0
-Copyright (c) 2012 Kimon Kontosis, licenced under the GNU GPL v3.0 or above
+Copyright (c) 2013 Kimon Kontosis, licenced under the GNU GPL v3.0 or above
 usage: ./sql2textmount [options]... [mount-options]... <conn-string> <path>
 where:
 	<conn-string> is the database connection string, and
