@@ -543,7 +543,13 @@ int fs_rename(const char *path, const char *newpath)
 			retstat = rename(fpath, fnewpath);
 			if (retstat < 0)
 				retstat = fs_error("fs_rename rename");
-
+                    
+            strcat(fpath, DBCLONEEXT);
+            strcat(fnewpath, DBCLONEEXT);
+            retstat = rename(fpath, fnewpath);
+            if (retstat < 0)
+                retstat = fs_error("fs_rename rename");
+                
 			log_vmsg("+ fs_rename mv_tab succeeded\n");
 			return retstat;
 		}
