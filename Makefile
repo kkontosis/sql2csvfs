@@ -7,16 +7,16 @@ ETCPATH=/
 
 CFLAGS=-Os -fPIC
 RETRANSE_FLAGS=-I ../retranse
-RETRANSE_LIBS=-l:../retranse/libretranse.a -lpcre++ -lpcre
+RETRANSE_LIBS=-L../retranse -lretranse -lpcre++ -lpcre
 CPPDB_FLAGS=-I ../cppdb
 CPPDB_LIBS=-L ../cppdb/lib -lcppdb
-#CPPDB_STATIC=-L ../cppdb/lib -l:libcppdb.a -lpthread -lmysqlclient -lpq -lodbc
-CPPDB_STATIC=-L ../cppdb/lib -l:libcppdb.a -lodbc
+#CPPDB_STATIC=-L ../cppdb/lib -lcppdb -lpthread -lmysqlclient -lpq -lodbc
+CPPDB_STATIC=-L ../cppdb/lib -lcppdb -lodbc
 SQL2TEXT_FLAGS=-I ../sql2text/
-SQL2TEXT_LIBS=-l:../sql2text/libsql2text.a
+SQL2TEXT_LIBS=-L../sql2text -lsql2text
 FUSE_FLAGS=`pkg-config fuse --cflags`
 FUSE_LIBS=`pkg-config fuse --libs`
-FLAGS=$(CPPDB_FLAGS) $(SQL2TEXT_FLAGS) $(RETRANSE_FLAGS) $(FUSE_FLAGS)
+FLAGS=$(CPPDB_FLAGS) $(SQL2TEXT_FLAGS) $(RETRANSE_FLAGS) $(FUSE_FLAGS) 
 LIBS=$(CPPDB_STATIC) $(SQL2TEXT_LIBS) $(RETRANSE_LIBS) $(FUSE_LIBS)
 
 # all
@@ -26,16 +26,22 @@ LIBS=$(CPPDB_STATIC) $(SQL2TEXT_LIBS) $(RETRANSE_LIBS) $(FUSE_LIBS)
 all: sql2textmount
 
 
-DEPENDENCIES=lib/sql2text/shared/libcppdb_mysql.so lib/sql2text/shared/libcppdb_postgresql.so lib/sql2text/shared/libcppdb_sqlite3.so 
+DEPENDENCIES=lib/sql2text/shared/libcppdb_mysql.so lib/sql2text/shared/libcppdb_postgresql.so lib/sql2text/shared/libcppdb_sqlite3.so libretranse.so libsql2text.so
+
+libretranse.so:
+	cp ../retranse/libretranse.so .
+
+libsql2text.so:
+	cp ../sql2text/libsql2text.so .
 
 lib/sql2text/shared/libcppdb_mysql.so: 
-	cp ../cppdb/lib/libcppdb_mysql.so lib/sql2text/shared
+	cp ../cppdb/lib/libcppdb_mysql.* lib/sql2text/shared
 
 lib/sql2text/shared/libcppdb_postgresql.so: 
-	cp ../cppdb/lib/libcppdb_postgresql.so lib/sql2text/shared
+	cp ../cppdb/lib/libcppdb_postgresql.* lib/sql2text/shared
 
 lib/sql2text/shared/libcppdb_sqlite3.so: 
-	cp ../cppdb/lib/libcppdb_sqlite3.so lib/sql2text/shared
+	cp ../cppdb/lib/libcppdb_sqlite3.* lib/sql2text/shared
 
 CONFIGURATION=etc/sql2text/config.ret
 
