@@ -1,4 +1,4 @@
-/*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
+/*  sql2textfs, a FUSE filesystem for mounting database tables as text files
  *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -12,13 +12,13 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  version 3.0 along with this program (see LICENSE); if not, see 
+ *  version 3.0 along with this program (see LICENSE); if not, see
  *  <http://www.gnu.org/licenses/>.
  *
 */
 
 /*
- * Reference Note: 
+ * Reference Note:
  * The fuse implementation was inspired by the online tutorial:
  *
  * Writing a FUSE Filesystem: a Tutorial
@@ -40,6 +40,7 @@
 // need this to get pwrite(). We have to use setvbuf() instead of
 // setlinebuf() later in consequence.
 #define _XOPEN_SOURCE 500
+#define _DARWIN_C_SOURCE
 
 #include <limits.h>
 #include <stdio.h>
@@ -68,7 +69,7 @@
 #include "rdel.hpp"
 
 // This is a macro that returns the fuse private data.
-// This data will be needed in all fuse callback functions. 
+// This data will be needed in all fuse callback functions.
 #define FS_DATA ((fs_state *) fuse_get_context()->private_data)
 
 // The struct fs_state contains all the fuse private data.
@@ -92,7 +93,7 @@ struct fs_state {
 	sql2text::handle* h;
 
 	// Mutual Exclusion handle for pthread library.
-	// Ensures that all calls to sql2textfs handlers are 
+	// Ensures that all calls to sql2textfs handlers are
 	// handled asynchronously.
 	pthread_mutex_t lock;
 
@@ -119,8 +120,8 @@ struct fs_state {
 		if(s.find(i) != s.end()) s.erase(i);
 		keys[i]=false;
 	}
-	
-	// A flag that is true if a file is open. 
+
+	// A flag that is true if a file is open.
 	// number n > 0 means file has been opened n times
 	std::map<std::string, int> openfiles;
 };
@@ -192,8 +193,8 @@ int fs_fgetattr(const char *path, struct stat *statbuf, struct fuse_file_info *f
 // Declare a struct that will be used for fuse initialization
 static struct fuse_operations fs_oper;
 
-// Fill-in the fuse initialization struct with all the required fuse callbacks 
-static __attribute__ ((unused)) fuse_operations& fs_oper_init() 
+// Fill-in the fuse initialization struct with all the required fuse callbacks
+static __attribute__ ((unused)) fuse_operations& fs_oper_init()
 {
 	fs_oper.getattr = fs_getattr;
 	//fs_oper.readlink = fs_readlink;

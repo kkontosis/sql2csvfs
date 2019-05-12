@@ -1,4 +1,4 @@
-/*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
+/*  sql2textfs, a FUSE filesystem for mounting database tables as text files
  *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -12,13 +12,13 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  version 3.0 along with this program (see LICENSE); if not, see 
+ *  version 3.0 along with this program (see LICENSE); if not, see
  *  <http://www.gnu.org/licenses/>.
  *
 */
 
 /*
- * Reference Note: 
+ * Reference Note:
  * The fuse implementation was inspired by the online tutorial:
  *
  * Writing a FUSE Filesystem: a Tutorial
@@ -38,7 +38,7 @@ int fs_usage(const char* programname)
 {
 	printf("sql2textfs version 1.0\n");
 	printf("Copyright (c) 2013 Kimon Kontosis, licenced under the GNU GPL v3.0 or above\n");
-	printf("usage: %s [options]... [mount-options]... <conn-string> <path>\n", 
+	printf("usage: %s [options]... [mount-options]... <conn-string> <path>\n",
 		programname);
 	printf("where:\n");
 	printf("\t<conn-string> is the database connection string, and\n");
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		else if(!strcmp(argv[argstart+1], "--verbose")) { verbose = 1; argstart++; nextarg=1; }
 		else if(!strcmp(argv[argstart+1], "--disable-reload")) { reload = 0; argstart++; nextarg=1; }
 		else if(!strcmp(argv[argstart+1], "--help")) argc=1;
-		else if(!strcmp(argv[argstart+1], "--log") && argstart+2 < argc) 
+		else if(!strcmp(argv[argstart+1], "--log") && argstart+2 < argc)
 			{ logname=argv[argstart+2]; argstart+=2; nextarg=1; }
 	}
 
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "To force running as root use the option: --root\n");
 		return 1;
 	}
-  
+
 	/* find configuration file path */
 
 	std::string bindir = get_bin_dir(argv[0]);
@@ -134,13 +134,13 @@ int main(int argc, char *argv[])
 	fs_data->verbose = verbose;
 	fs_data->reload = reload;
 	fs_data->logfile = log_open(logname);
-    
-	// libfuse is able to do the rest of the command line parsing; 
+
+	// libfuse is able to do the rest of the command line parsing;
 	for (i = 1+argstart; (i < argc) && (argv[i][0] == '-'); i++)
 	if (argv[i][1] == 'o') i++; // -o takes a parameter; need to skip
-  
+
 	if ((argc - i) != 2) return fs_usage(argv[0]);
-    
+
 	strcpy(tmpn, "/tmp/sql2textfs-XXXXXX");
 	fs_data->rootdir = mkdtemp(tmpn);
 	//std::cout << "Temp directory = " << fs_data->rootdir << std::endl;
@@ -155,22 +155,22 @@ int main(int argc, char *argv[])
 		if(!ci.has("@modules_path")) ci.properties["@modules_path"] = modules_path;
 
 		cppdb::session sql(ci);
-		
+
 		fs_data->h = new sql2text::handle(ci, sql, nc);
 		fs_data->h->check();
-		
+
 		pthread_mutex_init(&(fs_data->lock), NULL);
 
 
 		argv[argstart] = argv[0];
 		argv[i] = argv[i+1];
 		argc--;
-	    
+
 		//fprintf(stderr, "about to call fuse_main\n");
 		fuse_stat = fuse_main(argc-argstart, argv+argstart, &(fs_oper_init()), fs_data);
 		fprintf(stderr, "%s: fuse_main returned %d\n", argv[0], fuse_stat);
 		rmdir(fs_data->rootdir);
-	    
+
 		return fuse_stat;
 	}
 	catch(retranse::rtex const &x) {

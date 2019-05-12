@@ -1,4 +1,4 @@
-/*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
+/*  sql2textfs, a FUSE filesystem for mounting database tables as text files
  *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -12,13 +12,13 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  version 3.0 along with this program (see LICENSE); if not, see 
+ *  version 3.0 along with this program (see LICENSE); if not, see
  *  <http://www.gnu.org/licenses/>.
  *
 */
 
 /*
- * Reference Note: 
+ * Reference Note:
  * The fuse implementation was inspired by the online tutorial:
  *
  * Writing a FUSE Filesystem: a Tutorial
@@ -47,8 +47,8 @@
 // The struct monolock allows locking and unclocking of
 // the main mutex, of the fuse private data. It is merely
 // a wrapper class. It also unlocks the mutex if it remained
-// locked by the current object, at the destructor, allowing to 
-// automatically unlock after throwing exceptions, 
+// locked by the current object, at the destructor, allowing to
+// automatically unlock after throwing exceptions,
 // returning from functions etc. The actual class is not thread-safe.
 struct monolock {
 	volatile bool l;
@@ -101,7 +101,7 @@ inline bool fexist(const char* s)
 	return ifs.good();
 }
 
-// Make a clone of a table's temporary file to file with extension .o 
+// Make a clone of a table's temporary file to file with extension .o
 bool copytab(const char * p1, const char * p2)
 {
 	log_vmsg("+ copytab(%s, %s)\n", p1, p2);
@@ -139,7 +139,7 @@ bool run_create(const char *from, const char* p1, const char* p2)
 	sql2text::tbl info;
 	try{
 		b->h->info_tab(info, p1, p2);
-	} 
+	}
 	catch(retranse::rtex& r)
 	{
 		log_vmsg("+ + crerr_retranse!!:%s:@%s/%s\n",from,p1,p2);
@@ -163,7 +163,7 @@ bool run_create(const char *from, const char* p1, const char* p2)
 		log_vmsg("+ + create line_end=%s\n",line.c_str());
 	}
 	log_msg("+ run_create: ok!\n");
-	  
+
 	return true;
 }
 
@@ -188,7 +188,7 @@ bool exec_diff(const char *from, const char *to, const char* p1, const char* p2)
 
 	   std::vector<std::string> arg;
 	   arg.push_back(from);
-	   arg.push_back(to);   
+	   arg.push_back(to);
 	   redi::ipstream is("/usr/bin/diff", arg);
 	   std::string line;
 	   std::ofstream of((std::string(b->rootdir) + "/" + p1 + "/" + p2 + ".po").c_str());
@@ -203,7 +203,7 @@ bool exec_diff(const char *from, const char *to, const char* p1, const char* p2)
 	std::vector<std::string> arg;
 	arg.push_back("/usr/bin/diff");
 	arg.push_back(from);
-	arg.push_back(to);   
+	arg.push_back(to);
 	redi::ipstream is("/usr/bin/diff", arg);
 	std::string line;
 
@@ -211,7 +211,7 @@ bool exec_diff(const char *from, const char *to, const char* p1, const char* p2)
 	sql2text::tbl info;
 	try{
 		b->h->info_tab(info, p1, p2);
-	} 
+	}
 	catch(retranse::rtex& r)
 	{
 		log_vmsg("+ + differr_retranse!!:%s:%s@%s/%s\n",from,to,p1,p2);
@@ -227,20 +227,20 @@ bool exec_diff(const char *from, const char *to, const char* p1, const char* p2)
 		log_vmsg("+ + differr!!:%s:%s@%s/%s\n",from,to,p1,p2);
 		return false;
 	}
-	
+
 	// Update different lines:
 	int ch=0;
 	while (std::getline(is, line)) {
 		log_vmsg("+ + diff line=%s\n",line.c_str());
 		//of << line << std::endl;
-		if(line.size()>=2 && line[0]=='<') 
+		if(line.size()>=2 && line[0]=='<')
 			{ ch++; b->h->add_tab_row(info, p1, p2, line.c_str()+2); }
-		if(line.size()>=2 && line[0]=='>') 
+		if(line.size()>=2 && line[0]=='>')
 			{ ch++; b->h->rm_tab_row(info, p1, p2, line.c_str()+2); }
 		log_vmsg("+ + diff line_end=%s\n",line.c_str());
 	}
 	log_vmsg("+ exec_diff: ok!\n");
-	
+
 	if(ch) return true;
 	return false;
 	// true if diff
@@ -250,9 +250,9 @@ bool exec_diff(const char *from, const char *to, const char* p1, const char* p2)
 bool existance(const char* path, const char* tmpname, const char* reldir, const char* fname, int& retstat, const char* error_str)
 {
 	if(!fexist(tmpname)) {
-		if(!readtab(reldir, fname)) 
+		if(!readtab(reldir, fname))
 			{ return (false); }
-		else if(!copytab(reldir, fname)) 
+		else if(!copytab(reldir, fname))
 			{ retstat = fs_error(error_str); return (false); }
 	} else { // exists, test for reload trial
 		if(FS_DATA->reload && !FS_DATA->openfiles[path])
@@ -260,14 +260,14 @@ bool existance(const char* path, const char* tmpname, const char* reldir, const 
 			if(fexist((std::string(tmpname)+DBCLONEEXT).c_str())) //(was on database, not pseudo-file)
 			{
 				// probably safe to reload this file...
-				if(!readtab(reldir, fname)) 
+				if(!readtab(reldir, fname))
 					{ return (false); }
-				else if(!copytab(reldir, fname)) 
-					{ retstat = fs_error(error_str); return (false); }			
+				else if(!copytab(reldir, fname))
+					{ retstat = fs_error(error_str); return (false); }
 			}
 		}
 	}
-	
+
 	return true;
 }
 
@@ -293,8 +293,8 @@ int fs_getattr(const char *path, struct stat *statbuf)
 	ml.lock();
 
 	int retstat = 0;
-	char fpath[PATH_MAX]; 
-	char fgpath[PATH_MAX]; 
+	char fpath[PATH_MAX];
+	char fgpath[PATH_MAX];
 	const char *sx;
 
 	log_vmsg("\n");
@@ -309,7 +309,7 @@ int fs_getattr(const char *path, struct stat *statbuf)
 		fpath[sx-path-1]=0;
 		retstat = fs_error("fs_getattr lstat");
 		if(!existance(path, fgpath, fpath, fpath+(sx-path), retstat, "fs_getattr error"))
-			return (retstat);	
+			return (retstat);
 		fs_fullpath(fpath, path);
 		retstat = lstat(fpath, statbuf);
 	}
@@ -422,9 +422,9 @@ int fs_rmdir(const char *path)
 	fs_state* b = FS_DATA;
 
 	try {
-				  
+
 		b->h->rm_db(path+1);
-	
+
 	}catch(...) // if fail to delete database
 	{
 		mkdir(fpath, DB_MKDIR_MODE);
@@ -444,7 +444,7 @@ int fs_unlink(const char *path)
 	ml.lock();
 	int retstat = 0;
 	char fpath[PATH_MAX];
-	char fgpath[PATH_MAX]; 
+	char fgpath[PATH_MAX];
 	const char *sx;
 	struct stat statbuf;
 
@@ -453,7 +453,7 @@ int fs_unlink(const char *path)
 	fs_fullpath(fgpath, path);
 
 	retstat = lstat(fgpath, &statbuf);
-		
+
 	if(retstat == 0 && path[0] && (sx=strchr(path+1,'/')) && !checkdot(path)) {
 		log_vmsg("+ fs_unlink criterion met\n");
 		strcpy(fpath,path+1);
@@ -462,15 +462,15 @@ int fs_unlink(const char *path)
 		fs_state* b = FS_DATA;
 
 		try {
-			
-			if(fexist((std::string(fgpath)+DBCLONEEXT).c_str())) {			
-			
+
+			if(fexist((std::string(fgpath)+DBCLONEEXT).c_str())) {
+
 				// do only remove from database if clone file is present
 				b->h->rm_tab(fpath, fpath+(sx-path));
-				
+
 				unlink((std::string(fgpath)+DBCLONEEXT).c_str());
 			}
-			
+
 		} catch(...) {
 			return (retstat = fs_error("fs_unlink unlink"));
 		}
@@ -503,9 +503,9 @@ int fs_rename(const char *path, const char *newpath)
 
 	fs_state* b = FS_DATA;
 
-	try{    
+	try{
 		fs_fullpath(fgpath, path);
-		
+
 		retstat = lstat(fgpath, &statbuf);
 
 		log_vmsg("+ fs_rename_pre = %d\n",retstat);
@@ -515,10 +515,10 @@ int fs_rename(const char *path, const char *newpath)
 			retstat = fs_error("fs_getattr lstat");
 			strcpy(fpath,path+1);
 			fpath[sx-path-1]=0;
-			
+
 			if(!existance(path, fgpath, fpath, fpath+(sx-path), retstat, "fs_rename error"))
-				return (retstat);	
-			
+				return (retstat);
+
 			fs_fullpath(fpath, path);
 			retstat = lstat(fpath, &statbuf);
 		}
@@ -529,7 +529,7 @@ int fs_rename(const char *path, const char *newpath)
 			fpath[sx-path-1]=0;
 			if(strncmp(fpath, newpath+1, strlen(fpath))
 				||(strchr(fpath+(sx-path), '/'))
-				||(strchr(newpath+1+(sx-path), '/')))	
+				||(strchr(newpath+1+(sx-path), '/')))
 					return retstat = fs_error("fs_rename rename");
 
 			log_vmsg("+ fs_rename mv_tab %s %s %s \n", fpath, fpath+(sx-path), newpath+1+(sx-path));
@@ -543,13 +543,13 @@ int fs_rename(const char *path, const char *newpath)
 			retstat = rename(fpath, fnewpath);
 			if (retstat < 0)
 				retstat = fs_error("fs_rename rename");
-                    
+
             strcat(fpath, DBCLONEEXT);
             strcat(fnewpath, DBCLONEEXT);
             retstat = rename(fpath, fnewpath);
             if (retstat < 0)
                 retstat = fs_error("fs_rename rename");
-                
+
 			log_vmsg("+ fs_rename mv_tab succeeded\n");
 			return retstat;
 		}
@@ -558,18 +558,18 @@ int fs_rename(const char *path, const char *newpath)
 
 		fs_fullpath(fpath, path);
 		fs_fullpath(fnewpath, newpath);
-		
+
 		retstat = rename(fpath, fnewpath);
 		if (retstat < 0)
 			retstat = fs_error("fs_rename rename");
-		
+
 		ml.unlock();
 		return retstat;
 
 	}
 	catch(...)
 	{
-		ml.unlock();    
+		ml.unlock();
 		return retstat = -1; //fs_error("fs_rename rename");
 	}
 
@@ -638,39 +638,39 @@ int fs_open(const char *path, struct fuse_file_info *fi)
 	char fpath[PATH_MAX];
 	char fgpath[PATH_MAX];
 	const char* sx;
-    
+
 	log_vmsg("\n");
 	log_msg("fs_open(path\"%s\", fi=0x%08x)\n", path, fi);
-	fs_fullpath(fgpath, path); 
+	fs_fullpath(fgpath, path);
 	retstat = 1; // lstat(fpath, statbuf);
-		
+
 	if(retstat != 0 && path[0] && (sx=strchr(path+1,'/')) && !checkdot(path)) {
-		
+
 		strcpy(fpath,path+1);
 		fpath[sx-path-1]=0;
-		
+
 		if(!existance(path, fgpath, fpath, fpath+(sx-path), retstat, "fs_open error"))
-			return (retstat = fs_error("fs_open error"));	
-		
+			return (retstat = fs_error("fs_open error"));
+
 		//if(!fexist((std::string(fgpath)+".o").c_str()))
-		//  if(!copytab(fpath, fpath+(sx-path))) return (retstat = fs_error("fs_open error"));	
+		//  if(!copytab(fpath, fpath+(sx-path))) return (retstat = fs_error("fs_open error"));
 
 		fs_fullpath(fpath, path);
-			
+
 		fd = open(fpath, fi->flags);
 		if (fd < 0)
 			retstat = fs_error("fs_open open");
 
 		fi->fh = fd;
-		log_fi(fi);    	
-		
+		log_fi(fi);
+
 		FS_DATA->openfiles[path]++;
 
 		ml.unlock();
 		return 0;
-		
+
 	} else {
-		
+
 		return retstat = fs_error("fs_open open");
 
 		// old open imp
@@ -679,10 +679,10 @@ int fs_open(const char *path, struct fuse_file_info *fi)
 		fd = open(fgpath, fi->flags);
 		if (fd < 0)
 			retstat = fs_error("fs_open open");
-		
+
 		fi->fh = fd;
 		log_fi(fi);
-		
+
 		ml.unlock();
 		return retstat;
 		*/
@@ -750,7 +750,7 @@ int fs_write(const char *path, const char *buf, size_t size, off_t offset,
 		path, buf, size, offset, fi);
 	// no need to get fpath on this one, since I work from fi->fh not the path
 	log_fi(fi);
-	
+
 	retstat = pwrite(fi->fh, buf, size, offset);
 	if (retstat < 0)
 		retstat = fs_error("fs_write pwrite");
@@ -854,7 +854,7 @@ int fs_release(const char *path, struct fuse_file_info *fi)
 	const char* sx;
 
 	log_vmsg("\n");
-	log_msg("fs_release(path=\"%s\", fi=0x%08x)\n", path, fi); 
+	log_msg("fs_release(path=\"%s\", fi=0x%08x)\n", path, fi);
 	log_fi(fi);
 
 	// We need to close the file.  Had we allocated any resources
@@ -863,61 +863,61 @@ int fs_release(const char *path, struct fuse_file_info *fi)
 	FS_DATA->openfiles[path]--;
 	//return retstat;
 
-	fs_fullpath(fpath, path); 
+	fs_fullpath(fpath, path);
 
 	try {
 		retstat = 1;//lstat(fpath, statbuf);
-		
+
 		if(retstat != 0 && path[0] && (sx=strchr(path+1,'/')) && !checkdot(path)) {
 			strcpy(fpath,path+1);
 			fpath[sx-path-1]=0;
 			fs_fullpath(fgpath, path);
-	
+
 			if(fexist((std::string(fgpath)+DBCLONEEXT).c_str())) {
-		
+
 				bool rv=exec_diff(fgpath, (std::string(fgpath)+".o").c_str(), fpath, fpath+(sx-path));
 				//if(!fexist(fgpath))
 				if(rv) {
-					if(!readtab(fpath, fpath+(sx-path))) 
+					if(!readtab(fpath, fpath+(sx-path)))
 						return (retstat = fs_error("fs_release read db error"));
 					//if(!fexist((std::string(fgpath)+".o").c_str()))
-					if(!copytab(fpath, fpath+(sx-path))) 
-						return (retstat = fs_error("fs_release copy error"));	
-			
+					if(!copytab(fpath, fpath+(sx-path)))
+						return (retstat = fs_error("fs_release copy error"));
+
 				}
-			
+
 				//if(!rv)
-				//	return retstat = -1;				
+				//	return retstat = -1;
 			} else {
 				bool rv=run_create(fgpath, fpath, fpath+(sx-path));
 				if(rv) {
-					if(!readtab(fpath, fpath+(sx-path))) 
+					if(!readtab(fpath, fpath+(sx-path)))
 						return (retstat = fs_error("fs_release read db error after creation"));
 					//if(!fexist((std::string(fgpath)+".o").c_str()))
-					if(!copytab(fpath, fpath+(sx-path))) 
-						return (retstat = fs_error("fs_release copy error"));	
-				
+					if(!copytab(fpath, fpath+(sx-path)))
+						return (retstat = fs_error("fs_release copy error"));
+
 				}
-				
+
 			}
 
 			//no: if(!readtab(fpath, fpath+(sx-path))) return (retstat = fs_error("fs_open error"));
-			//if(!copytab(fpath, fpath+(sx-path))) return (retstat = fs_error("fs_open error"));	
+			//if(!copytab(fpath, fpath+(sx-path))) return (retstat = fs_error("fs_open error"));
 
 		}
 
 		retstat = 0;
-		
+
 		ml.unlock();
 		return retstat;
 	}
 	catch(...)
 	{
 		log_vmsg("+ fs_release diff exception\n");
-		if(!readtab(fpath, fpath+(sx-path))) 
+		if(!readtab(fpath, fpath+(sx-path)))
 			return (retstat = fs_error("fs_release read error after exception"));
-		if(!copytab(fpath, fpath+(sx-path))) 
-			return (retstat = fs_error("fs_release copy error after exception"));	
+		if(!copytab(fpath, fpath+(sx-path)))
+			return (retstat = fs_error("fs_release copy error after exception"));
 		ml.unlock();
 		return retstat = -1; //fs_error("fs_rename rename");
 	}
@@ -939,15 +939,20 @@ int fs_fsync(const char *path, int datasync, struct fuse_file_info *fi)
 	log_vmsg("\n");
 	log_msg("fs_fsync(path=\"%s\", datasync=%d, fi=0x%08x)\n", path, datasync, fi);
 	log_fi(fi);
-    
-	if (datasync)
-		retstat = fdatasync(fi->fh);
-	else
+
+	if (datasync) {
+#ifdef __APPLE__
+		// fcntl(fi->fh, F_FULLFSYNC);
 		retstat = fsync(fi->fh);
-    
+#else
+		retstat = fdatasync(fi->fh);
+#endif
+	} else
+		retstat = fsync(fi->fh);
+
 	if (retstat < 0)
 		fs_error("fs_fsync fsync");
-    
+
 	ml.unlock();
 	return retstat;
 }
@@ -969,13 +974,13 @@ int fs_opendir(const char *path, struct fuse_file_info *fi)
 
 	log_vmsg("\n");
 	log_msg("fs_opendir(path=\"%s\", fi=0x%08x)\n", path, fi);
-	
+
 	fs_state* b = FS_DATA;
 	DIR* dp;
 	int k=b->n_key();
 	fi->fh = -1;
 
-	
+
 	//////////////////////////////////
 	// TODO: case where sub-dir exists but is not yet created
 	if(!strcmp(path, "/")) { } // root
@@ -988,7 +993,7 @@ int fs_opendir(const char *path, struct fuse_file_info *fi)
 		closedir(dp);
 	}
 	//////////////////////////////////
-	
+
 	fi->fh = (intptr_t) k;
 	//fi->fh = (intptr_t) dp;
 
@@ -1027,7 +1032,7 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 	int retstat = 0;
 	char fpath[PATH_MAX];
 	int pflag = !strcmp(path,"/");
-    
+
 	log_vmsg("\n");
 	log_msg("fs_readdir(path=\"%s\", buf=0x%08x, filler=0x%08x, offset=%lld, fi=0x%08x)\n",
 		path, buf, filler, offset, fi);
@@ -1036,22 +1041,22 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 	fs_state* b = FS_DATA;
 	int k = (int) fi->fh;
 	if(k==-1) return 0;
-	
-	
+
+
 	DIR* dp;
 	dirent* de;
-	
+
 	try{
-		
+
 		if(!strcmp(path, "/")) { // root ls
-		
-			b->v[k] = b->h->ls_root();			
+
+			b->v[k] = b->h->ls_root();
 		} else {
-		
+
 			b->v[k] = b->h->ls_db(path+1);
-			
+
 			// append actual files from opendir, if not included
-			fs_fullpath(fpath, path); 
+			fs_fullpath(fpath, path);
 			dp=opendir(fpath);
 			if(dp==NULL)
 				return (retstat = fs_error("fs_readdir readdir"));
@@ -1082,17 +1087,17 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 				}
 			} while ((de = readdir(dp)) != NULL);
 			closedir(dp);
-				
+
 		}
-	
+
 	}
-    catch(...) 
-	{ 
-		return -1; 
-	}	
-	
+    catch(...)
+	{
+		return -1;
+	}
+
 	std::vector<std::string>& v=b->v[k];
-		
+
 	if(buf){
 		if (filler(buf, ".", NULL, 0) != 0) {
 			log_vmsg(" + fs_readdir error: filler: buffer full");
@@ -1101,7 +1106,7 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 		if (filler(buf, "..", NULL, 0) != 0) {
 			log_vmsg(" + fs_readdir error: filler: buffer full");
 			return -ENOMEM;
-		}		
+		}
 	}
 	for(size_t i=0;i<v.size();i++) {
 		log_vmsg("+ fs_readdir: calling filler with name %s\n", v[i].c_str());
@@ -1116,8 +1121,8 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 		    mkdir((std::string(b->rootdir)+"/"+v[i]).c_str(), DB_MKDIR_MODE);
 		}
 	}
-  
-    /*  
+
+    /*
     dp = (DIR *) (uintptr_t) fi->fh;
 
     // Every directory contains at least two entries: . and ..  If my
@@ -1142,7 +1147,7 @@ int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
 	}
     } while ((de = readdir(dp)) != NULL);
     */
-    
+
 	log_fi(fi);
 
 	ml.unlock();
@@ -1166,7 +1171,7 @@ int fs_releasedir(const char *path, struct fuse_file_info *fi)
 	int k = (int) fi->fh;
 	if(k!=-1)
 		FS_DATA->r_key(k);
-		
+
 	//closedir((DIR *) (uintptr_t) fi->fh);
 
 	ml.unlock();
@@ -1219,7 +1224,7 @@ void *fs_init(struct fuse_conn_info *conn)
 	log_msg("fs_init()\n");
 
 	fuse_file_info a;
-	fuse_fill_dir_t filler=0;//if any problem occurs delete =0   
+	fuse_fill_dir_t filler=0;//if any problem occurs delete =0
 	fs_opendir("/",&a);
 	fs_readdir("/",NULL,filler,0,&a);
 	fs_releasedir("/",&a);

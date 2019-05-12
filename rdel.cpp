@@ -1,4 +1,4 @@
-/*  sql2textfs, a FUSE filesystem for mounting database tables as text files 
+/*  sql2textfs, a FUSE filesystem for mounting database tables as text files
  *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -12,12 +12,13 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  version 3.0 along with this program (see LICENSE); if not, see 
+ *  version 3.0 along with this program (see LICENSE); if not, see
  *  <http://www.gnu.org/licenses/>.
  *
 */
 
 #define _XOPEN_SOURCE 500
+#define _DARWIN_C_SOURCE
 #include <ftw.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,10 +72,10 @@ std::string readlin(const std::string& s, int mode)
       char*c =strrchr(buf,'/');
       if(c) *c=0;
     }
-    
+
     std::string r = buf;
     free(buf);
-    return r;   
+    return r;
 }
 
 bool exist(const std::string& s)
